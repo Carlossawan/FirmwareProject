@@ -1,0 +1,33 @@
+{
+	"folders": [
+		{
+			"path": "src"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"main.h": "c",
+			"18f26k22.h": "c",
+			"adc.h": "c",
+			"system.h": "c",
+			"relay.h": "c",
+			"hardware.h": "c",
+			"scheduler.h": "c",
+			"math.h": "c",
+			"stdlib.h": "c",
+			"stddef.h": "c",
+			"tc72.h": "c",
+			"18f46k22.h": "c",
+			"nvm.h": "c",
+			"24xc02.h": "c",
+			"stdbool.h": "c",
+			"ext_dac.h": "c",
+			"tempr.h": "c",
+			"18f67k22.h": "c"
+		},
+		"C_Cpp.autocompleteAddParentheses": true,
+		"C_Cpp.default.includePath": [
+			"C:\\Program Files (x86)\\PICC\\Devices\\"
+		]
+	}
+}

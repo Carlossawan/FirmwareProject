@@ -1,0 +1,4 @@
+/Firmware/output/
+/Firmware/src/*.err
+/.vscode/
+/Docs/~*

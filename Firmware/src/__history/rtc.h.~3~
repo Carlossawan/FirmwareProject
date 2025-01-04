@@ -1,0 +1,12 @@
+#ifndef RTC_H
+#define RTC_H
+
+#include <stdint.h>
+
+
+
+void rtc_init(void);                   // Initialize the RTC
+void rtc_get_time(rtc_time_t *time);   // Retrieve the current time from RTC
+
+#endif
+

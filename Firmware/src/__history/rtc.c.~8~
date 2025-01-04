@@ -1,0 +1,61 @@
+#include "rtc.h"
+#include "i2c.h" // Include your I2C library
+
+#define RTC_I2C_ADDRESS 0xD0 // RTC I2C address for DS1307 or DS3231
+
+// Convert BCD to Decimal
+static uint8_t bcd_to_dec(uint8_t bcd)
+{
+    return ((bcd >> 4) * 10) + (bcd & 0x0F);
+}
+
+// Convert Decimal to BCD
+static uint8_t dec_to_bcd(uint8_t dec)
+{
+    return ((dec / 10) << 4) | (dec % 10);
+}
+
+bool rtc_init(void)
+{
+    // Example: Check I2C communication with RTC
+    i2c_start();
+    if (!i2c_write(RTC_I2C_ADDRESS)) // Attempt to communicate
+    {
+        i2c_stop();
+        return false; // Communication failed
+    }
+    i2c_stop();
+
+    return true; // Initialization succeeded
+}
+
+
+void rtc_get_time(custom_rtc_time_t *time)
+{
+    uint8_t data[7];
+
+    // Request time from RTC
+    i2c_start();
+    i2c_write(RTC_I2C_ADDRESS); // RTC address
+    i2c_write(0x00);            // Start reading at register 0x00
+    i2c_stop();
+
+    // Read 7 bytes of time and date data
+    i2c_start();
+    i2c_write(RTC_I2C_ADDRESS | 0x01); // RTC address with read bit
+    for (uint8_t i = 0; i < 6; i++)
+    {
+        data[i] = i2c_read(1); // Read with ACK
+    }
+    data[6] = i2c_read(0); // Last byte with NACK
+    i2c_stop();
+
+    // Parse the time and date
+    time->seconds = bcd_to_dec(data[0]);
+    time->minutes = bcd_to_dec(data[1]);
+    time->hours = bcd_to_dec(data[2]);
+    time->day = bcd_to_dec(data[4]);
+    time->month = bcd_to_dec(data[5]);
+    time->year = bcd_to_dec(data[6]);
+}
+

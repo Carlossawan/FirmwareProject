@@ -4,7 +4,7 @@
 
 //Globals:
 cntr_size_t local_sys_tick_counter  = 0; //tick counter
-volatile uint8_t hours = 11;    // Start at 12:00:00 (arbitrary initialization)
+volatile uint8_t hours = 12;    // Start at 12:00:00 (arbitrary initialization)
 volatile uint8_t minutes = 0;
 volatile uint8_t seconds = 0;
 
@@ -16,7 +16,6 @@ volatile uint8_t seconds = 0;
  * @date 
  */
 #int_TIMER1
-
 #int_TIMER1
 void TIMER1_isr(void)
 {

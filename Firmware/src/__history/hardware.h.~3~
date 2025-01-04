@@ -1,0 +1,21 @@
+#ifndef  HARDWARE_H
+#define  HARDWARE_H
+// BCD Pins (PORTD)
+#define BCD_PORT PORTD
+
+// Digit control pins
+#define DIGIT_1_CONTROL PIN_RE0  // Control pin for display 1
+#define DIGIT_2_CONTROL PIN_RE1  // Control pin for display 2
+#define DIGIT_3_CONTROL PIN_RE2  // Control pin for display 3
+#define DIGIT_4_CONTROL PIN_RE3  // Control pin for display 4
+
+
+#include "stdbool.h"    /*in order to use "bool" type*/
+
+//List all IOs here:
+
+
+///////////////////////////////////////////////////////////////////////////////
+bool init_hw(void);
+///////////////////////////////////////////////////////////////////////////////
+#endif

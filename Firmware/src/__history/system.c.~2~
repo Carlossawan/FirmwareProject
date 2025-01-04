@@ -1,0 +1,175 @@
+#include "main.h"
+#include "hardware.h"
+#include "system.h"
+#include "scheduler.h"
+#include "adc.h"
+#include "tempr.h"
+#include "timer.h"
+
+// Task Handles
+s_task_handle_t tempr_task;
+s_task_handle_t motor_task;
+s_task_handle_t display_task;
+
+// Global Variables
+uint8_t current_floor = 0;    // Ground Floor
+uint8_t target_floor = 0;
+bool is_moving = false;
+bool direction_up = true;
+bool floor_buttons[4] = {false, false, false, false}; // GF, F1, F2, F3
+
+
+const uint8_t segment_encoding[4] = {
+    0b00111111, // 0
+    0b00000110, // 1
+    0b01011011, // 2
+    0b01001111  // 3
+};
+
+
+// Prototypes
+void temperature_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+void motor_control_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+void display_task_func(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+void button_handler_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+
+void main()
+{
+    bool ret;
+
+    delay_ms(100);  // Power-up delay
+
+    // Initialize the system
+    ret = scheduler_init(get_ticks_counter);
+    if (!ret) while (true);  // Stall on failure
+
+    ret &= init_hw();
+    ret &= init_system();
+    ret &= init_adc();
+
+    // Create tasks
+    ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 1000, time_temperature_display_task, NULL, NULL);
+    ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 1000, temperature_task, &tempr_task, NULL);
+    ret &= s_task_create(true, S_TASK_NORMAL_PRIORITY, 100, motor_control_task, &motor_task, NULL);
+    ret &= s_task_create(true, S_TASK_HIGH_PRIORITY, 500, display_task_func, &display_task, NULL);
+    ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 200, button_handler_task, NULL, NULL);
+
+    if (ret)
+    {
+        while (true)
+        {
+            scheduler();  // Run scheduler forever
+        }
+    }
+    else
+    {
+        while (true);  // Stall on failure
+    }
+}
+void temperature_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
+{
+    float temperature = read_temperature();
+    if (temperature > MAX_TEMPERATURE)
+    {
+        // Stop the elevator and show overheat warning
+        is_moving = false;
+    }
+}
+
+void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
+{
+    static uint8_t seconds_elapsed = 0;
+    static uint8_t hours = 12, minutes = 0, day = 1, month = 1;  // Example initialization
+    float temperature = read_temperature();
+
+    if (seconds_elapsed >= 10)
+    {
+        seconds_elapsed = 0;  // Reset counter
+        
+        // Display HH:MM
+        printf("Time: %02d:%02d\n", hours, minutes);
+
+        // Display DD-MM
+        printf("Date: %02d-%02d\n", day, month);
+
+        // Display Temperature
+        printf("Temperature: %.1f dC\n", temperature);
+
+        // Update clock (simplified)
+        minutes++;
+        if (minutes >= 60)
+        {
+            minutes = 0;
+            hours++;
+            if (hours >= 24) hours = 0;
+        }
+
+        // (Optional) Update date (very simplified)
+        day++;
+        if (day > 30)  // Example logic for simplicity
+        {
+            day = 1;
+            month++;
+            if (month > 12) month = 1;
+        }
+    }
+    else
+    {
+        seconds_elapsed++;
+    }
+}
+
+
+void update_7seg_display(uint8_t encoded_value)
+{
+    // Assuming PORTD is connected to the 7-segment display
+    output_d(encoded_value);
+}
+
+
+void display_floor(uint8_t floor)
+{
+    if (floor < 4) // Ensure valid floor number
+    {
+        uint8_t encoded_value = segment_encoding[floor];
+        update_7seg_display(encoded_value);
+    }
+}
+void display_task_func(s_task_handle_t me, s_task_msg_t **msg, void* arg)
+{
+    // Update floor and temperature display
+    display_floor(current_floor);
+    
+}
+void button_handler_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
+{
+    for (uint8_t i = 0; i < 4; i++)
+    {
+        if (floor_buttons[i] && !is_moving)
+        {
+            target_floor = i;
+            is_moving = true;
+            break;  // Only handle one button at a time
+        }
+    }
+}
+
+
+
+void display_temperature(float temperature)
+{
+}
+void handle_buttons(void)
+{
+    
+    if (input(PIN_C7)) floor_buttons[0] = true;
+    if (input(PIN_C6)) floor_buttons[1] = true;
+    if (input(PIN_B7)) floor_buttons[2] = true;
+    if (input(PIN_B6)) floor_buttons[3] = true;
+}
+
+
+
+
+

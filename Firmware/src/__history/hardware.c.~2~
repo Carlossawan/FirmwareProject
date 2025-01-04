@@ -76,5 +76,48 @@ void heart_beat_led(s_task_handle_t me, s_task_msg_t **msg, void* arg)
 
 
 
+void disable_all_digits()
+{
+    output_bit(PIN_DIGIT_1, 0); // Disable digit 1
+    output_bit(PIN_DIGIT_2, 0); // Disable digit 2
+    output_bit(PIN_DIGIT_3, 0); // Disable digit 3
+    output_bit(PIN_DIGIT_4, 0); // Disable digit 4
+}
+
+
+void output_segments(uint8_t encoded_value)
+{
+    // Assuming segments A-G and DP are connected to specific GPIO pins
+    output_bit(PIN_SEG_A, (encoded_value & 0b00000001)); // Segment A
+    output_bit(PIN_SEG_B, (encoded_value & 0b00000010) >> 1); // Segment B
+    output_bit(PIN_SEG_C, (encoded_value & 0b00000100) >> 2); // Segment C
+    output_bit(PIN_SEG_D, (encoded_value & 0b00001000) >> 3); // Segment D
+    output_bit(PIN_SEG_E, (encoded_value & 0b00010000) >> 4); // Segment E
+    output_bit(PIN_SEG_F, (encoded_value & 0b00100000) >> 5); // Segment F
+    output_bit(PIN_SEG_G, (encoded_value & 0b01000000) >> 6); // Segment G
+    output_bit(PIN_SEG_DP, (encoded_value & 0b10000000) >> 7); // Decimal Point
+}
+
+void enable_digit(uint8_t digit)
+{
+    switch (digit)
+    {
+    case 0:
+        output_bit(PIN_DIGIT_1, 1); // Enable digit 1
+        break;
+    case 1:
+        output_bit(PIN_DIGIT_2, 1); // Enable digit 2
+        break;
+    case 2:
+        output_bit(PIN_DIGIT_3, 1); // Enable digit 3
+        break;
+    case 3:
+        output_bit(PIN_DIGIT_4, 1); // Enable digit 4
+        break;
+    default:
+        break;
+    }
+}
+
 
 #endif

@@ -1,0 +1,20 @@
+#ifndef RTC_H
+#define RTC_H
+
+#include <stdint.h>
+
+typedef struct
+{
+    uint8_t seconds;
+    uint8_t minutes;
+    uint8_t hours;
+    uint8_t day;   // Day of the month
+    uint8_t month; // Month
+    uint8_t year;  // Year (last two digits)
+} rtc_time_t;
+
+void rtc_init(void);                  // Initialize the RTC
+void rtc_get_time(rtc_time_t *time);  // Retrieve the current time from RTC
+
+#endif
+

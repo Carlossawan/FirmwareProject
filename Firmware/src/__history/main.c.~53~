@@ -53,7 +53,7 @@ void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void*
 {
     static uint8_t display_mode = 0;  // 0: Time, 1: Date, 2: Temperature
     static uint8_t seconds_elapsed = 0;
-
+0
     // Read current time and date from RTC
     custom_rtc_time_t rtc_time;
     rtc_get_time(&rtc_time);

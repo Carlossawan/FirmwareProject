@@ -1,0 +1,34 @@
+#ifndef  HARDWARE_H
+#define  HARDWARE_H
+#define PIN_SEG_A PIN_B0  // Segment A
+#define PIN_SEG_B PIN_B1  // Segment B
+#define PIN_SEG_C PIN_B2  // Segment C
+#define PIN_SEG_D PIN_B3  // Segment D
+#define PIN_SEG_E PIN_B4  // Segment E
+#define PIN_SEG_F PIN_B5  // Segment F
+#define PIN_SEG_G PIN_B6  // Segment G
+#define PIN_SEG_DP PIN_B7 // Decimal Point (optional)
+
+#define PIN_DIGIT_1 PIN_C0  // Digit 1
+#define PIN_DIGIT_2 PIN_C1  // Digit 2
+#define PIN_DIGIT_3 PIN_C2  // Digit 3
+#define PIN_DIGIT_4 PIN_C3  // Digit 4
+// Define BCD output port
+#define BCD_PORT PORTD
+
+// Define digit control pins
+#define DIGIT_1_CONTROL PIN_RE0
+#define DIGIT_2_CONTROL PIN_RE1
+#define DIGIT_3_CONTROL PIN_RE2
+#define DIGIT_4_CONTROL PIN_RE3
+
+
+#include "stdbool.h"    /*in order to use "bool" type*/
+
+//List all IOs here:
+
+
+///////////////////////////////////////////////////////////////////////////////
+bool init_hw(void);
+///////////////////////////////////////////////////////////////////////////////
+#endif

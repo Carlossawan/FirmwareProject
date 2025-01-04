@@ -61,14 +61,6 @@ void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void*
     float temperature = read_temperature();  // Get the temperature
 
     // Increment elapsed seconds
-    seconds_elapsed++;
-
-    // Switch display mode every 10 seconds
-    if (seconds_elapsed >= 10)
-    {
-        seconds_elapsed = 0;             // Reset counter
-        display_mode = (display_mode + 1) % 3;  // Cycle through modes
-    }
 //!    seconds_elapsed++;
 //!
 //!    // Switch display mode every 10 seconds

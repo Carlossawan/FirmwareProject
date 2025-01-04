@@ -1,0 +1,184 @@
+#include "main.h"
+#include "hardware.h"
+#include "system.h"
+#include "scheduler.h"
+#include "adc.h"
+#include "tempr.h"
+#include "timer.h"
+
+// Global Variables for Time Tracking
+volatile uint8_t hours = 12;    // Start at 12:00 (arbitrary)
+volatile uint8_t minutes = 0;
+volatile uint8_t seconds = 0;
+
+// Task Handles
+s_task_handle_t display_task;
+
+// Function Prototypes
+void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
+void display_number(uint8_t numbers[4]);
+void enable_digit(uint8_t digit);
+void display_digit(uint8_t value);
+void update_time();
+
+void main()
+{
+    bool ret;
+
+    delay_ms(100); // Power-up delay
+
+    // Initialize the system
+    ret = scheduler_init(get_ticks_counter);
+    if (!ret) while (true); // Stall on failure
+
+    ret &= init_hw();
+    ret &= init_system();
+    ret &= init_adc();
+
+    // Create tasks
+    ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 1000, time_temperature_display_task, NULL, NULL);
+
+    if (ret)
+    {
+        while (true)
+        {
+            scheduler(); // Run scheduler forever
+        }
+    }
+    else
+    {
+        while (true); // Stall on failure
+    }
+}
+
+
+
+// Function to Enable a Specific Digit
+void enable_digit(uint8_t digit)
+{
+    // Disable all digits
+    output_low(DIGIT_1_CONTROL);
+    output_low(DIGIT_2_CONTROL);
+    output_low(DIGIT_3_CONTROL);
+    output_low(DIGIT_4_CONTROL);
+
+    // Enable the selected digit
+    switch (digit)
+    {
+    case 0:
+        output_high(DIGIT_1_CONTROL);
+        break;
+    case 1:
+        output_high(DIGIT_2_CONTROL);
+        break;
+    case 2:
+        output_high(DIGIT_3_CONTROL);
+        break;
+    case 3:
+        output_high(DIGIT_4_CONTROL);
+        break;
+    default:
+        break;
+    }
+}
+
+// Function to Output a BCD Value to PORTD
+void display_digit(uint8_t value)
+{
+    void display_digit(uint8_t digit, uint8_t value)
+{
+    // Output the BCD value to the respective pins
+    switch (digit)
+    {
+    case 1: // Digit 1
+        output_bit(DIGIT_1_BCD0, (value & 0b0001));
+        output_bit(DIGIT_1_BCD1, (value & 0b0010) >> 1);
+        output_bit(DIGIT_1_BCD2, (value & 0b0100) >> 2);
+        output_bit(DIGIT_1_BCD3, (value & 0b1000) >> 3);
+        break;
+
+    case 2: // Digit 2
+        output_bit(DIGIT_2_BCD0, (value & 0b0001));
+        output_bit(DIGIT_2_BCD1, (value & 0b0010) >> 1);
+        output_bit(DIGIT_2_BCD2, (value & 0b0100) >> 2);
+        output_bit(DIGIT_2_BCD3, (value & 0b1000) >> 3);
+        break;
+
+    case 3: // Digit 3
+        output_bit(DIGIT_3_BCD0, (value & 0b0001));
+        output_bit(DIGIT_3_BCD1, (value & 0b0010) >> 1);
+        output_bit(DIGIT_3_BCD2, (value & 0b0100) >> 2);
+        output_bit(DIGIT_3_BCD3, (value & 0b1000) >> 3);
+        break;
+
+    case 4: // Digit 4
+        output_bit(DIGIT_4_BCD0, (value & 0b0001));
+        output_bit(DIGIT_4_BCD1, (value & 0b0010) >> 1);
+        output_bit(DIGIT_4_BCD2, (value & 0b0100) >> 2);
+        output_bit(DIGIT_4_BCD3, (value & 0b1000) >> 3);
+        break;
+
+    default:
+        break;
+    }
+}
+
+}
+
+// Multiplexing Function to Display a 4-Digit Number
+void display_number(uint8_t numbers[4])
+{
+   void display_number(uint16_t number)
+{
+    // Extract digits from the number (assumes 4 digits)
+    uint8_t digit1 = (number / 1000) % 10; // Thousands place
+    uint8_t digit2 = (number / 100) % 10;  // Hundreds place
+    uint8_t digit3 = (number / 10) % 10;   // Tens place
+    uint8_t digit4 = number % 10;          // Units place
+
+    // Display each digit
+    display_digit(1, digit1); // Display digit 1
+    display_digit(2, digit2); // Display digit 2
+    display_digit(3, digit3); // Display digit 3
+    display_digit(4, digit4); // Display digit 4
+}
+
+}
+
+// Task to Display Time, Date, or Temperature
+void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
+{
+    static uint8_t display_mode = 0; // 0: Time, 1: Date, 2: Temperature
+    static uint8_t seconds_elapsed = 0;
+
+    float temperature = read_temperature(); // Get the temperature
+
+    
+
+    uint8_t digits[4];
+    switch (display_mode)
+    {
+    case 0: // Display Time (HH:MM)
+        display_digit(1, hours / 10);    // Tens place of hours
+        display_digit(2, hours % 10);    // Units place of hours
+        display_digit(3, minutes / 10);  // Tens place of minutes
+        display_digit(4, minutes % 10);  // Units place of minutes
+        break;
+    case 1: // Display Date (DD-MM)
+        digits[0] = 0; // Example Date: 01-01 (adjust as needed)
+        digits[1] = 1;
+        digits[2] = 0;
+        digits[3] = 1;
+        break;
+    case 2: // Display Temperature (TT dC)
+        digits[0] = (uint8_t)temperature / 10;
+        digits[1] = (uint8_t)temperature % 10;
+        digits[2] = (uint8_t)(temperature * 10) % 10; // Tenths place
+        digits[3] = 12; // Custom encoding for 'C' (update if needed)
+        break;
+    }
+
+    display_number(*digits); // Update the display
+}
+
+

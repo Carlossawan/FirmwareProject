@@ -1,0 +1,26 @@
+/**
+ * @file tempr.c
+ * @author Majdi Richa (majdi.richa@gmail.com)
+ * @brief 
+ * @version 0.1
+ * @date 2024-11-18
+ * 
+ * @copyright Copyright (c) 2024
+ * 
+ */
+
+#include "main.h"
+#include "tempr.h"
+#include "adc.h"
+#define VREF 5.0          // ADC reference voltage (in volts)
+#define ADC_RESOLUTION 1024 // ADC resolution for a 10-bit ADC (2^10 = 1024)
+
+float read_temperature(void)
+{
+    uint16_t adc_value = get_adc(0); // Read ADC value from channel 0
+    float voltage = (adc_value * VREF) / ADC_RESOLUTION; // Convert ADC value to voltage
+    float scaled_voltage = voltage / 5; // Undo the gain from K1
+    float temperature = scaled_voltage * 100.0; // Convert voltage to temperature (10 mV/°C)
+
+    return temperature; // Return temperature in °C
+}

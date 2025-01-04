@@ -6,7 +6,6 @@
 #include "tempr.h"
 #include "rtc.h"
 #include "timer.h"
-#include "rtc.c"
 
 // Global Variables
 s_task_handle_t display_task;
@@ -30,7 +29,7 @@ void main()
     ret &= init_hw();
     ret &= init_system();
     ret &= init_adc();
-    rtc_initialize(); // Initialize the RTC
+    ret &= rtc_init(0); // Initialize the RTC
 
     // Create tasks
     ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 1000, time_temperature_display_task, NULL, NULL);
@@ -69,15 +68,7 @@ void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void*
         seconds_elapsed = 0;             // Reset counter
         display_mode = (display_mode + 1) % 3;  // Cycle through modes
     }
-//!    seconds_elapsed++;
-//!
-//!    // Switch display mode every 10 seconds
-//!    if (seconds_elapsed >= 10)
-//!    {
-//!        seconds_elapsed = 0;             // Reset counter
-//!        display_mode = (display_mode + 1) % 3;  // Cycle through modes
-//!    }
-//!
+
     uint8_t digits[4] = {0, 0, 0, 0};  // Array for storing BCD values for 4 digits
 
     switch (display_mode)

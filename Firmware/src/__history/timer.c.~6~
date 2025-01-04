@@ -16,8 +16,6 @@ volatile uint8_t seconds = 0;
  * @date 
  */
 #int_TIMER1
-
-#int_TIMER1
 void TIMER1_isr(void)
 {
     set_timer1(get_timer1() - TMR1Reload);  /* Re-load timer */

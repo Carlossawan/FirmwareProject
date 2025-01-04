@@ -1,0 +1,22 @@
+#ifndef RTC_H
+#define RTC_H
+
+#include <stdint.h>
+
+typedef struct {
+   int8 tm_year;
+   int8 tm_temp;  // Not used by built in functions, place holder do not use
+   int8 tm_mday;
+   int8 tm_mon;
+   int8 tm_hour;
+   int8 tm_wday;
+   int8 tm_sec;
+   int8 tm_min;
+   int8 tm_isdst; // Not used by built in functions
+} rtc_time_t;
+
+void rtc_init(void);                   // Initialize the RTC
+void rtc_get_time(rtc_time_t *time);   // Retrieve the current time from RTC
+
+#endif
+

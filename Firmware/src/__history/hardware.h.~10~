@@ -1,0 +1,22 @@
+
+#ifndef  HARDWARE_H
+#define  HARDWARE_H
+#define BCD_PORT(value) output_d(value)
+
+
+// Define digit control pins
+#define DIGIT_1_CONTROL PIN_E0
+#define DIGIT_2_CONTROL PIN_E1
+#define DIGIT_3_CONTROL PIN_E2
+#define DIGIT_4_CONTROL PIN_E3
+
+
+#include "stdbool.h"    /*in order to use "bool" type*/
+
+//List all IOs here:
+
+
+///////////////////////////////////////////////////////////////////////////////
+bool init_hw(void);
+///////////////////////////////////////////////////////////////////////////////
+#endif

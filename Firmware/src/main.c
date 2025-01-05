@@ -8,10 +8,8 @@
 #include "timer.h"
 #include "rtc.c"
 
-// Global Variables
 s_task_handle_t display_task;
 
-// Function Prototypes
 void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
 void display_number(uint8_t numbers[4]);
 void display_digit(uint8_t digit, uint8_t value);
@@ -20,143 +18,182 @@ float read_temperature(void);
 void main()
 {
     bool ret;
+    delay_ms(100);
 
-    delay_ms(100); // Power-up delay
-
-    // Initialize the system
     ret = scheduler_init(get_ticks_counter);
-    if (!ret) while (true); // Stall on failure
+    if (!ret) while (true);
 
     ret &= init_hw();
     ret &= init_system();
     ret &= init_adc();
-    rtc_initialize(); // Initialize the RTC
+    rtc_initialize();
 
-    // Create tasks
+    update_display(0);
+
     ret &= s_task_create(true, S_TASK_LOW_PRIORITY, 1000, time_temperature_display_task, NULL, NULL);
 
     if (ret)
     {
         while (true)
         {
-            scheduler(); // Run scheduler forever
+            scheduler();
+            uint8_t selected_floor = read_buttons();
+            if (selected_floor != 255)
+            {
+                target_floor = selected_floor;
+                is_moving = true;
+            }
+            if (is_moving)
+            {
+                move_elevator();
+            }
+            delay_ms(100);
         }
     }
     else
     {
-        while (true); // Stall on failure
+        while (true);
     }
 }
 
-// Task to Display Time, Date, or Temperature
+// Update display with floor
+void update_display(uint8_t floor)
+{
+    if (floor > 3) return;
+    output_bit(SEG_A, (floor & 0b0001));
+    output_bit(SEG_B, (floor & 0b0010) >> 1);
+    output_bit(SEG_C, (floor & 0b0100) >> 2);
+    output_bit(SEG_D, (floor & 0b1000) >> 3);
+}
+
+// Read button states
+uint8_t read_buttons(void)
+{
+    if (!input(Cab_GF)) return 0;
+    if (!input(Cab_F1)) return 1;
+    if (!input(Cab_F2)) return 2;
+    if (!input(Cab_F3)) return 3;
+    return 255;
+}
+
+// Handle elevator movement
+void move_elevator(void)
+{
+    static bool initial_delay = true;
+
+    if (initial_delay)
+    {
+        delay_ms(500);
+        initial_delay = false;
+    }
+
+    if (current_floor < target_floor)
+    {
+        delay_ms(1000);
+        current_floor++;
+        update_display(current_floor);
+    }
+    else if (current_floor > target_floor)
+    {
+        delay_ms(1000);
+        current_floor--;
+        update_display(current_floor);
+    }
+    else
+    {
+        is_moving = false;
+        initial_delay = true;
+    }
+}
+
+// Display time, date, temperature
 void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
 {
-    static uint8_t display_mode = 0;  // 0: Time, 1: Date, 2: Temperature
+    static uint8_t display_mode = 0;
     static uint8_t seconds_elapsed = 0;
 
-    // Read current time and date from RTC
     custom_rtc_time_t rtc_time;
     rtc_get_time(&rtc_time);
 
-    float temperature = read_temperature();  // Get the temperature
+    float temperature = read_temperature();
 
-    // Increment elapsed seconds
     seconds_elapsed++;
-
-    // Switch display mode every 10 seconds
     if (seconds_elapsed >= 10)
     {
-        seconds_elapsed = 0;             // Reset counter
-        display_mode = (display_mode + 1) % 3;  // Cycle through modes
+        seconds_elapsed = 0;
+        display_mode = (display_mode + 1) % 3;
     }
-//!    seconds_elapsed++;
-//!
-//!    // Switch display mode every 10 seconds
-//!    if (seconds_elapsed >= 10)
-//!    {
-//!        seconds_elapsed = 0;             // Reset counter
-//!        display_mode = (display_mode + 1) % 3;  // Cycle through modes
-//!    }
-//!
-    uint8_t digits[4] = {0, 0, 0, 0};  // Array for storing BCD values for 4 digits
+
+    uint8_t digits[4] = {0, 0, 0, 0};
 
     switch (display_mode)
     {
-    case 0: // Display Time (HH:MM)
-        digits[0] = rtc_time.hours / 10;    // Tens place of hours
-        digits[1] = rtc_time.hours % 10;    // Units place of hours
-        digits[2] = rtc_time.minutes / 10;  // Tens place of minutes
-        digits[3] = rtc_time.minutes % 10;  // Units place of minutes
+    case 0:
+        digits[0] = rtc_time.hours / 10;
+        digits[1] = rtc_time.hours % 10;
+        digits[2] = rtc_time.minutes / 10;
+        digits[3] = rtc_time.minutes % 10;
         break;
-
-    case 1: // Display Date (DD-MM)
-        digits[0] = rtc_time.day / 10;  // Tens place of day
-        digits[1] = rtc_time.day % 10;  // Units place of day
-        digits[2] = rtc_time.month / 10; // Tens place of month
-        digits[3] = rtc_time.month % 10; // Units place of month
+    case 1:
+        digits[0] = rtc_time.day / 10;
+        digits[1] = rtc_time.day % 10;
+        digits[2] = rtc_time.month / 10;
+        digits[3] = rtc_time.month % 10;
         break;
-
-    case 2: // Display Temperature (TT.C)
-        digits[0] = (uint8_t)temperature / 10;       // Tens place of temperature
-        digits[1] = (uint8_t)temperature % 10;       // Units place of temperature
-        digits[2] = (uint8_t)(temperature * 10) % 10; // Tenths place
-        digits[3] = 12;  // Custom value for 'C' (update encoding if needed)
+    case 2:
+        digits[0] = (uint8_t)temperature / 10;
+        digits[1] = (uint8_t)temperature % 10;
+        digits[2] = (uint8_t)(temperature * 10) % 10;
+        digits[3] = 12;
         break;
-
-    default: // Safety fallback
-        digits[0] = digits[1] = digits[2] = digits[3] = 0; // Default to blank
+    default:
+        digits[0] = digits[1] = digits[2] = digits[3] = 0;
         break;
     }
 
-    // Update the display with the calculated digits
     display_number(digits);
 }
-// Function to Display a BCD Value on a Specific Digit
+
+// Display digit values
 void display_digit(uint8_t digit, uint8_t value)
 {
     switch (digit)
     {
-    case 1: // Digit 1
+    case 1:
         output_bit(DIGIT_1_BCD0, (value & 0b0001));
         output_bit(DIGIT_1_BCD1, (value & 0b0010) >> 1);
         output_bit(DIGIT_1_BCD2, (value & 0b0100) >> 2);
         output_bit(DIGIT_1_BCD3, (value & 0b1000) >> 3);
         break;
-
-    case 2: // Digit 2
+    case 2:
         output_bit(DIGIT_2_BCD0, (value & 0b0001));
         output_bit(DIGIT_2_BCD1, (value & 0b0010) >> 1);
         output_bit(DIGIT_2_BCD2, (value & 0b0100) >> 2);
         output_bit(DIGIT_2_BCD3, (value & 0b1000) >> 3);
         break;
-
-    case 3: // Digit 3
+    case 3:
         output_bit(DIGIT_3_BCD0, (value & 0b0001));
         output_bit(DIGIT_3_BCD1, (value & 0b0010) >> 1);
         output_bit(DIGIT_3_BCD2, (value & 0b0100) >> 2);
         output_bit(DIGIT_3_BCD3, (value & 0b1000) >> 3);
         break;
-
-    case 4: // Digit 4
+    case 4:
         output_bit(DIGIT_4_BCD0, (value & 0b0001));
         output_bit(DIGIT_4_BCD1, (value & 0b0010) >> 1);
         output_bit(DIGIT_4_BCD2, (value & 0b0100) >> 2);
         output_bit(DIGIT_4_BCD3, (value & 0b1000) >> 3);
         break;
-
     default:
         break;
     }
 }
 
-// Function to Display a 4-Digit Number
+// Display four digits
 void display_number(uint8_t numbers[4])
 {
-    display_digit(1, numbers[0]); // Display digit 1
-    display_digit(2, numbers[1]); // Display digit 2
-    display_digit(3, numbers[2]); // Display digit 3
-    display_digit(4, numbers[3]); // Display digit 4
+    display_digit(1, numbers[0]);
+    display_digit(2, numbers[1]);
+    display_digit(3, numbers[2]);
+    display_digit(4, numbers[3]);
 }
-
-// Task to Display Time, Date, or Temperature
 

@@ -1,9 +1,9 @@
 
 #ifndef  HARDWARE_H
 #define  HARDWARE_H
-#byte PORTD = 0xF83  
+#byte PORTD = 0xF83  // Address of PORTD for PIC18F67K22
 
-
+// Define BCD output port
 #define BCD_PORT PORTD
 
 #define DIGIT_1_BCD0 PIN_E4
@@ -33,10 +33,10 @@
 #define SEG_C PIN_G2
 #define SEG_D PIN_G3
 
-#define Cab_GF PIN_C7 // Ground Floor
-#define Cab_F1 PIN_C6 // Floor 1
-#define Cab_F2 PIN_B7 // Floor 2
-#define Cab_F3 PIN_B6 // Floor 3 
+#define Cab_GF PIN_C7 // Replace PIN_B0 with the actual pin connected to Cab_GF
+#define Cab_F1 PIN_B6 // Replace PIN_B1 with the actual pin connected to Cab_F1
+#define Cab_F2 PIN_B7 // Replace PIN_B2 with the actual pin connected to Cab_F2
+#define Cab_F3 PIN_B6 // Replace PIN_B3 with the actual pin connected to Cab_F3
 
 // Floor Data
 
@@ -44,15 +44,12 @@
 
 
 
-#include "stdbool.h"    
-uint8_t current_floor = 0; 
-uint8_t target_floor = 0;  
-bool is_moving = false;   
+#include "stdbool.h"    /*in order to use "bool" type*/
+uint8_t current_floor = 0; // Start at ground floor (0)
 
 // Function Prototypes
 void update_display(uint8_t floor);
 uint8_t read_buttons(void);
-void move_elevator(void);
 
 
 //List all IOs here:

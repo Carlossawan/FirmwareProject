@@ -1,9 +1,9 @@
 
 #ifndef  HARDWARE_H
 #define  HARDWARE_H
-#byte PORTD = 0xF83  
+#byte PORTD = 0xF83  // Address of PORTD for PIC18F67K22
 
-
+// Define BCD output port
 #define BCD_PORT PORTD
 
 #define DIGIT_1_BCD0 PIN_E4
@@ -36,7 +36,7 @@
 #define Cab_GF PIN_C7 // Ground Floor
 #define Cab_F1 PIN_C6 // Floor 1
 #define Cab_F2 PIN_B7 // Floor 2
-#define Cab_F3 PIN_B6 // Floor 3 
+#define Cab_F3 PIN_B6 // Floor 3 (ensure it's mapped to a unique pin)
 
 // Floor Data
 
@@ -44,10 +44,10 @@
 
 
 
-#include "stdbool.h"    
-uint8_t current_floor = 0; 
-uint8_t target_floor = 0;  
-bool is_moving = false;   
+#include "stdbool.h"    /*in order to use "bool" type*/
+uint8_t current_floor = 0; // Start at ground floor
+uint8_t target_floor = 0;  // Target floor set by button press
+bool is_moving = false;    // Elevator movement state
 
 // Function Prototypes
 void update_display(uint8_t floor);

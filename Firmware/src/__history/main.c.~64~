@@ -56,7 +56,6 @@ void main()
     }
 }
 
-
 // Update display with floor
 void update_display(uint8_t floor)
 {
@@ -70,23 +69,12 @@ void update_display(uint8_t floor)
 // Read button states
 uint8_t read_buttons(void)
 {
-    // Inside elevator buttons
-    if (!input(Cab_GF)) return 0; // Ground Floor (0)
-    if (!input(Cab_F1)) return 1; // Floor 1
-    if (!input(Cab_F2)) return 2; // Floor 2
-    if (!input(Cab_F3)) return 3; // Floor 3
-
-    // Outside elevator buttons
-    if (!input(flr3_Btn_Dn)) return 3; // Floor 3 Down
-    if (!input(flr2_Btn_Up)) return 2; // Floor 2 Up
-    if (!input(flr2_Btn_Dn)) return 2; // Floor 2 Down
-    if (!input(flr1_Btn_Up)) return 1; // Floor 1 Up
-    if (!input(flr1_Btn_Dn)) return 1; // Floor 1 Down
-    if (!input(flr0_Btn_Up)) return 0; // Floor 0 Up
-
-    return 255; // No button pressed
+    if (!input(Cab_GF)) return 0;
+    if (!input(Cab_F1)) return 1;
+    if (!input(Cab_F2)) return 2;
+    if (!input(Cab_F3)) return 3;
+    return 255;
 }
-
 
 // Handle elevator movement
 void move_elevator(void)

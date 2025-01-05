@@ -56,7 +56,6 @@ void main()
     }
 }
 
-
 // Update display with floor
 void update_display(uint8_t floor)
 {

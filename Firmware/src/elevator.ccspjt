@@ -40,7 +40,7 @@ enabled=0
 chip=1
 D1=
 V1=
-buildcount=80
+buildcount=81
 
 [main.c]
 Type=4
@@ -58,7 +58,7 @@ Fixed=
 
 [Opened Files]
 1=main.c
-t1=175
+t1=42
 Count=12
 2=hardware.c
 t2=13
@@ -73,7 +73,7 @@ t6=1
 7=timer.c
 t7=39
 8=hardware.h
-t8=1
+t8=33
 9=timer.h
 t9=1
 10=rtc.c
@@ -267,7 +267,7 @@ D15_L36=[77352]Started Editing.
 D15_L37=[78104]Stopped Editing.
 D15_L38=[78123]Project Closed.
 D16=05-01-2025
-D16_L=10
+D16_L=12
 D16_L1=[67377]Project Opened.
 D16_L2=[67377]Project Closed.
 D16_L3=[67378]Project Opened.
@@ -280,6 +280,8 @@ D16_L7=[68163]Project Opened.
 D16_L8=[68322]Started Editing.
 D16_L9=[69037]Stopped Editing.
 D16_L10=[69086]Started Editing.
+D16_L11=[69867]Stopped Editing.
+D16_L12=[70067]Started Editing.
 [..\output\elevator.c]
 Type=4
 [..\..\..\UART_int_Tasks\Firmware\output\elevator.c]

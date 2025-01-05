@@ -8,13 +8,13 @@ typedef struct
     uint8_t seconds;
     uint8_t minutes;
     uint8_t hours;
-    uint8_t day;   // Day of the month
-    uint8_t month; // Month
-    uint8_t year;  // Year (last two digits)
+    uint8_t day;   
+    uint8_t month; 
+    uint8_t year;  
 } custom_rtc_time_t;
 
-void rtc_initialize(void);                      // Initialize the RTC
-void rtc_get_time(custom_rtc_time_t *time);     // Retrieve the current time from RTC
+void rtc_initialize(void);                    
+void rtc_get_time(custom_rtc_time_t *time);     
 
 #endif
 

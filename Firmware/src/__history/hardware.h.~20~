@@ -38,15 +38,7 @@
 #define Cab_F2 PIN_B7 // Floor 2
 #define Cab_F3 PIN_B6 // Floor 3 
 
-#define flr3_Btn_Dn PIN_B0
-
-#define flr2_Btn_Up PIN_B1
-#define flr2_Btn_Dn PIN_B2
-
-#define flr1_Btn_Up PIN_B3
-#define flr1_Btn_Dn PIN_B4
-
-#define flr0_Btn_Up PIN_B5
+// Floor Data
 
 
 

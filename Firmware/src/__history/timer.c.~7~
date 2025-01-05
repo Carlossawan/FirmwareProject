@@ -23,12 +23,12 @@ void TIMER1_isr(void)
     set_timer1(get_timer1() - TMR1Reload);  /* Re-load timer */
     local_sys_tick_counter++;
 
-    
+    // Increment time every 1000 ticks (1 second)
     static uint16_t ms_counter = 0;
     ms_counter++;
-    if (ms_counter >= 1000)  
+    if (ms_counter >= 1000)  // 1 second elapsed
     {
-        ms_counter = 0;  
+        ms_counter = 0;  // Reset millisecond counter
         seconds++;
         if (seconds >= 60)
         {
@@ -40,7 +40,7 @@ void TIMER1_isr(void)
                 hours++;
                 if (hours >= 24)
                 {
-                    hours = 0;  
+                    hours = 0;  // Reset to 0 after 24 hours
                 }
             }
         }

@@ -93,28 +93,13 @@ void move_elevator(void)
 
     if (initial_delay)
     {
-        delay_ms(1000); // Initial delay
+        delay_ms(500);
         initial_delay = false;
     }
 
     adjust_speed();
 
-    uint16_t delay_time;
-    switch (elevator_speed)
-    {
-        case 1: // Low speed
-            delay_time = 3000; // Adjust this value for low speed
-            break;
-        case 2: // Medium speed
-            delay_time = 2000; // Adjust this value for medium speed
-            break;
-        case 3: // High speed
-            delay_time = 1000; // Adjust this value for high speed
-            break;
-        default:
-            delay_time = 2000; // Default to medium speed
-            break;
-    }
+    uint16_t delay_time = 1000 / elevator_speed;
 
     if (current_floor < target_floor)
     {
@@ -135,21 +120,20 @@ void move_elevator(void)
     }
 }
 
-// Adjust elevator speed based on position
+// Adjust elevator speed based on sensor inputs
 void adjust_speed(void)
 {
-    if (current_floor == target_floor)
+    if (input(Flr3_Stop) == 0 || input(Flr2_Stop) == 0 || input(Flr1_Stop) == 0 || input(Flr0_Stop) == 0)
     {
-        elevator_speed = 1; // Low speed (Stop)
+        elevator_speed = 1; // Stop
     }
-    else if ((target_floor > current_floor && current_floor + 1 == target_floor) || 
-             (target_floor < current_floor && current_floor - 1 == target_floor))
+    else if (input(Flr3_Spd_Chg1) == 0 || input(Flr2_Spd_Chg1) == 0 || input(Flr1_Spd_Chg1) == 0)
     {
-        elevator_speed = 2; // Medium speed (Deceleration)
+        elevator_speed = 2; // Speed change 1
     }
-    else
+    else if (input(Flr2_Spd_Chg2) == 0 || input(Flr1_Spd_Chg2) == 0 || input(Flr0_Spd_Chg2) == 0)
     {
-        elevator_speed = 3; // High speed (Cruising speed)
+        elevator_speed = 3; // Speed change 2
     }
 }
 

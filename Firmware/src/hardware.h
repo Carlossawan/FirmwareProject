@@ -1,8 +1,6 @@
-
-#ifndef  HARDWARE_H
-#define  HARDWARE_H
-#byte PORTD = 0xF83  
-
+#ifndef HARDWARE_H
+#define HARDWARE_H
+#byte PORTD = 0xF83
 
 #define BCD_PORT PORTD
 
@@ -26,7 +24,6 @@
 #define DIGIT_4_BCD2 PIN_D2
 #define DIGIT_4_BCD3 PIN_D3
 
-
 // Pin Definitions
 #define SEG_A PIN_G0
 #define SEG_B PIN_G1
@@ -36,7 +33,7 @@
 #define Cab_GF PIN_C7 // Ground Floor
 #define Cab_F1 PIN_C6 // Floor 1
 #define Cab_F2 PIN_B7 // Floor 2
-#define Cab_F3 PIN_B6 // Floor 3 
+#define Cab_F3 PIN_B6 // Floor 3
 
 #define flr3_Btn_Dn PIN_B0
 
@@ -48,23 +45,34 @@
 
 #define flr0_Btn_Up PIN_B5
 
+// Speed and stop sensors
+#define Flr3_Stop PIN_A0
+#define Flr3_Spd_Chg1 PIN_A1
 
+#define Flr2_Stop PIN_A2
+#define Flr2_Spd_Chg2 PIN_A3
+#define Flr2_Spd_Chg1 PIN_A4
 
+#define Flr1_Spd_Chg2 PIN_A5
+#define Flr1_Stop PIN_A6
+#define Flr1_Spd_Chg1 PIN_A7
 
+#define Flr0_Spd_Chg2 PIN_A8
+#define Flr0_Stop PIN_A9
 
-#include "stdbool.h"    
-uint8_t current_floor = 0; 
-uint8_t target_floor = 0;  
-bool is_moving = false;   
+#include "stdbool.h"
+uint8_t current_floor = 0;
+uint8_t target_floor = 0;
+bool is_moving = false;
+uint8_t elevator_speed = 1; // Default speed
 
 // Function Prototypes
 void update_display(uint8_t floor);
 uint8_t read_buttons(void);
 void move_elevator(void);
+void adjust_speed(void);
 
-
-//List all IOs here:
-
+// List all IOs here:
 
 ///////////////////////////////////////////////////////////////////////////////
 bool init_hw(void);

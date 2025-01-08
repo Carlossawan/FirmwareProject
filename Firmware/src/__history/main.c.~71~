@@ -8,19 +8,12 @@
 #include "timer.h"
 #include "rtc.c"
 
-#use rs232(baud=9600, xmit=PIN_C6, rcv=PIN_C7, stream=UART1)
-
 s_task_handle_t display_task;
 
 void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg);
 void display_number(uint8_t numbers[4]);
 void display_digit(uint8_t digit, uint8_t value);
 float read_temperature(void);
-void set_motor_speed(uint8_t speed);
-void set_motor_direction(bool up);
-void check_floor_signals(void);
-void move_elevator(void);
-void adjust_speed(void);
 
 void main()
 {
@@ -49,10 +42,7 @@ void main()
             {
                 target_floor = selected_floor;
                 is_moving = true;
-                set_motor_direction(current_floor < target_floor); // Set direction
-                set_motor_speed(2); // Start at high speed
             }
-
             if (is_moving)
             {
                 move_elevator();
@@ -66,7 +56,7 @@ void main()
     }
 }
 
-// Update display
+// Update display with floor
 void update_display(uint8_t floor)
 {
     if (floor > 3) return;
@@ -76,123 +66,94 @@ void update_display(uint8_t floor)
     output_bit(SEG_D, (floor & 0b1000) >> 3);
 }
 
-// Read buttons
+// Read button states
 uint8_t read_buttons(void)
 {
-    if (!input(Cab_GF)) return 0;
-    if (!input(Cab_F1)) return 1;
-    if (!input(Cab_F2)) return 2;
-    if (!input(Cab_F3)) return 3;
+    // Inside elevator buttons
+    if (!input(Cab_GF)) return 0; // Ground Floor (0)
+    if (!input(Cab_F1)) return 1; // Floor 1
+    if (!input(Cab_F2)) return 2; // Floor 2
+    if (!input(Cab_F3)) return 3; // Floor 3
 
-    if (!input(flr3_Btn_Dn)) return 3;
-    if (!input(flr2_Btn_Up)) return 2;
-    if (!input(flr2_Btn_Dn)) return 2;
-    if (!input(flr1_Btn_Up)) return 1;
-    if (!input(flr1_Btn_Dn)) return 1;
-    if (!input(flr0_Btn_Up)) return 0;
+    // Outside elevator buttons
+    if (!input(flr3_Btn_Dn)) return 3; // Floor 3 Down
+    if (!input(flr2_Btn_Up)) return 2; // Floor 2 Up
+    if (!input(flr2_Btn_Dn)) return 2; // Floor 2 Down
+    if (!input(flr1_Btn_Up)) return 1; // Floor 1 Up
+    if (!input(flr1_Btn_Dn)) return 1; // Floor 1 Down
+    if (!input(flr0_Btn_Up)) return 0; // Floor 0 Up
 
-    return 255;
+    return 255; // No button pressed
 }
 
-// Check signals
-void check_floor_signals(void)
-{
-    if (!input(Flr3_Stop) || !input(Flr2_Stop) || !input(Flr1_Stop) || !input(Flr0_Stop))
-    {
-        set_motor_speed(0);
-        is_moving = false;
-        current_floor = target_floor;
-        update_display(current_floor);
-    }
-    else if ((current_floor == 3 && !input(Flr3_Spd_Chg1)) ||
-             (current_floor == 2 && !input(Flr2_Spd_Chg1)) ||
-             (current_floor == 1 && !input(Flr1_Spd_Chg1)))
-    {
-        set_motor_speed(1);
-    }
-    else if ((current_floor == 2 && !input(Flr2_Spd_Chg2)) ||
-             (current_floor == 1 && !input(Flr1_Spd_Chg2)))
-    {
-        set_motor_speed(2);
-    }
-    else
-    {
-        set_motor_speed(2);
-    }
-}
-
-// Set motor speed
-void set_motor_speed(uint8_t speed)
-{
-    switch (speed)
-    {
-    case 0:
-        output_low(PIN_F1);
-        output_low(PIN_F2);
-        break;
-    case 1:
-        output_low(PIN_F1);
-        output_high(PIN_F2);
-        break;
-    case 2:
-        output_high(PIN_F1);
-        output_low(PIN_F2);
-        break;
-    default:
-        output_low(PIN_F1);
-        output_low(PIN_F2);
-        break;
-    }
-}
-
-// Adjust speed
-void adjust_speed(void)
-{
-    check_floor_signals();
-}
-
-// Move elevator
+// Handle elevator movement
 void move_elevator(void)
 {
-    check_floor_signals();
+    static bool initial_delay = true;
+
+    if (initial_delay)
+    {
+        delay_ms(1000); // Initial delay
+        initial_delay = false;
+    }
+
+    adjust_speed();
+
+    uint16_t delay_time;
+    switch (elevator_speed)
+    {
+        case 1: // Low speed
+            delay_time = 3000; // Adjust this value for low speed
+            break;
+        case 2: // Medium speed
+            delay_time = 2000; // Adjust this value for medium speed
+            break;
+        case 3: // High speed
+            delay_time = 1000; // Adjust this value for high speed
+            break;
+        default:
+            delay_time = 2000; // Default to medium speed
+            break;
+    }
 
     if (current_floor < target_floor)
     {
-        set_motor_direction(true);
-        delay_ms(1000);
+        delay_ms(delay_time);
         current_floor++;
         update_display(current_floor);
     }
     else if (current_floor > target_floor)
     {
-        set_motor_direction(false);
-        delay_ms(1000);
+        delay_ms(delay_time);
         current_floor--;
         update_display(current_floor);
     }
     else
     {
-        set_motor_speed(0);
         is_moving = false;
+        initial_delay = true;
     }
 }
 
-// Set direction
-void set_motor_direction(bool up)
+// Adjust elevator speed based on position
+void adjust_speed(void)
 {
-    if (up)
+    if (current_floor == target_floor)
     {
-        output_high(PIN_F3);
-        output_low(PIN_F4);
+        elevator_speed = 1; // Low speed (Stop)
+    }
+    else if ((target_floor > current_floor && current_floor + 1 == target_floor) || 
+             (target_floor < current_floor && current_floor - 1 == target_floor))
+    {
+        elevator_speed = 2; // Medium speed (Deceleration)
     }
     else
     {
-        output_low(PIN_F3);
-        output_high(PIN_F4);
+        elevator_speed = 3; // High speed (Cruising speed)
     }
 }
 
-// Time and temperature
+// Display time, date, temperature
 void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void* arg)
 {
     static uint8_t display_mode = 0;
@@ -240,7 +201,7 @@ void time_temperature_display_task(s_task_handle_t me, s_task_msg_t **msg, void*
     display_number(digits);
 }
 
-// Display digit
+// Display digit values
 void display_digit(uint8_t digit, uint8_t value)
 {
     switch (digit)
@@ -274,7 +235,7 @@ void display_digit(uint8_t digit, uint8_t value)
     }
 }
 
-// Display number
+// Display four digits
 void display_number(uint8_t numbers[4])
 {
     display_digit(1, numbers[0]);
@@ -282,4 +243,3 @@ void display_number(uint8_t numbers[4])
     display_digit(3, numbers[2]);
     display_digit(4, numbers[3]);
 }
-
